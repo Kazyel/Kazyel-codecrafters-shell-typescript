@@ -5,13 +5,26 @@ const rl = createInterface({
     output: process.stdout,
 });
 
+function processCommand(userInput: string) {
+    const [command, ...args] = userInput.split(" ");
+    return [command, args.join(" ")];
+}
+
 function commandInput() {
-    rl.question("$ ", (answer) => {
-        if (answer === "exit 0" || answer === "exit") {
+    rl.question("$ ", (userCommand) => {
+        const [command, ...args] = processCommand(userCommand);
+
+        if (command + " 0" === "exit 0" || command === "exit") {
             process.exit(0);
         }
 
-        rl.write(`${answer}: command not found\n`);
+        if (command === "echo") {
+            rl.write(args + `\n`);
+            commandInput();
+            return;
+        }
+
+        rl.write(`${userCommand}: command not found\n`);
         commandInput();
     });
 }
