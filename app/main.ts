@@ -5,14 +5,15 @@ const rl = createInterface({
     output: process.stdout,
 });
 
-async function questionFunc() {
+function commandInput() {
     rl.question("$ ", (answer) => {
+        if (answer === "exit 0" || answer === "exit") {
+            process.exit(0);
+        }
+
         rl.write(`${answer}: command not found\n`);
+        commandInput();
     });
 }
 
-questionFunc();
-
-rl.on("line", () => {
-    questionFunc();
-});
+commandInput();
