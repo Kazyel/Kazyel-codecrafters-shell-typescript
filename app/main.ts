@@ -5,7 +5,14 @@ const rl = createInterface({
     output: process.stdout,
 });
 
-rl.question("$ ", (answer) => {
-    rl.write(`${answer}: command not found\n`);
-    rl.close();
+async function questionFunc() {
+    rl.question("$ ", (answer) => {
+        rl.write(`${answer}: command not found\n`);
+    });
+}
+
+questionFunc();
+
+rl.on("line", () => {
+    questionFunc();
 });
