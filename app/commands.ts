@@ -1,4 +1,6 @@
 import { rl } from "./main";
+import fs from "fs";
+import path from "path";
 
 const commandsList = ["echo", "type", "exit"];
 
@@ -19,6 +21,19 @@ export function type(args: string[]): boolean {
         rl.write(`${args[0]} is a shell builtin\n`);
         return true;
     }
+
+    const pathEnv = process.env.PATH;
+    const existingPaths = pathEnv!.split(":");
+
+    for (const directory of existingPaths) {
+        const filePath = path.join(directory, args[0]);
+
+        if (fs.existsSync(filePath)) {
+            rl.write(`${args[0]} is ${filePath} \n`);
+            return true;
+        }
+    }
+
     return false;
 }
 

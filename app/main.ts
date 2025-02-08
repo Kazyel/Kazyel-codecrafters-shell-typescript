@@ -10,39 +10,38 @@ function commandInput() {
     rl.question("$ ", (userCommand) => {
         const [command, ...args] = processCommand(userCommand);
 
-        if (!command) {
+        if (command === "") {
             commandInput();
             return;
         }
 
-        if (command === "echo") {
-            echo([...args]);
-            commandInput();
-            return;
-        }
-
-        if (command === "type") {
-            if (args.length === 0) {
-                // rl.write("type: missing operand\n");
+        switch (command) {
+            case "echo":
+                echo([...args]);
                 commandInput();
                 return;
-            }
 
-            const commandExists = type([...args]);
+            case "type":
+                if (args.length === 0) {
+                    commandInput();
+                    return;
+                }
 
-            if (commandExists === false)
-                rl.write(`${args.join(" ")}: not found\n`);
+                const commandExists = type([...args]);
 
-            commandInput();
-            return;
+                if (commandExists === false)
+                    rl.write(`${args.join(" ")}: not found\n`);
+
+                commandInput();
+                return;
+
+            case "exit":
+                process.exit(0);
+
+            default:
+                rl.write(`${userCommand}: command not found\n`);
+                commandInput();
         }
-
-        if (command + " 0" === "exit 0" || command === "exit") {
-            process.exit(0);
-        }
-
-        rl.write(`${userCommand}: command not found\n`);
-        commandInput();
     });
 }
 
