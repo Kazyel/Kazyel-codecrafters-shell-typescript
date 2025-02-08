@@ -1,5 +1,10 @@
 import { createInterface } from "readline";
-import processCommand, { echo, type } from "./commands";
+import processCommand, {
+    commandsList,
+    echo,
+    externalCommand,
+    type,
+} from "./commands";
 
 export const rl = createInterface({
     input: process.stdin,
@@ -11,6 +16,17 @@ function commandInput() {
         const [command, ...args] = processCommand(userCommand);
 
         if (command === "") {
+            commandInput();
+            return;
+        }
+
+        if (!commandsList.includes(command)) {
+            const externalCommandExists = externalCommand(command, [...args]);
+
+            if (externalCommandExists === false) {
+                rl.write(`${command}: command not found\n`);
+            }
+
             commandInput();
             return;
         }
@@ -39,8 +55,9 @@ function commandInput() {
                 process.exit(0);
 
             default:
-                rl.write(`${userCommand}: command not found\n`);
+                rl.write(`${command}: command not found\n`);
                 commandInput();
+                return;
         }
     });
 }
