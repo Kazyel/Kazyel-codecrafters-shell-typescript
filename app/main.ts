@@ -50,7 +50,7 @@ async function commandInput() {
                 );
 
                 if (!externalCommandExists) {
-                    rl.write(`${command}: command not found\n`);
+                    rl.write(`\n${command}: command not found\n\n`);
                 }
 
                 commandInput();

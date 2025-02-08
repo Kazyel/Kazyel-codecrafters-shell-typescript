@@ -27,14 +27,26 @@ export async function runExternalCommand(
         const filePath = path.join(directory, command);
 
         if (fs.existsSync(filePath)) {
-            const { stdout, stderr } = await execCallback(
-                command + " " + args.join(" ")
-            );
+            if (args.length === 0) {
+                rl.write(`\n${command}: no arguments provided\n\n`);
+                foundExec = true;
+                break;
+            }
 
-            rl.write(`\n${stdout}`);
+            try {
+                const { stdout, stderr } = await execCallback(
+                    command + " " + args.join(" ")
+                );
 
-            if (stderr) {
-                rl.write(`\n${stderr}`);
+                rl.write(`\n${stdout}\n`);
+
+                if (stderr) {
+                    rl.write(`\n${stderr}\n`);
+                }
+            } catch (error) {
+                rl.write(`\n${error}\n`);
+                foundExec = true;
+                break;
             }
 
             foundExec = true;
@@ -48,7 +60,7 @@ export async function runExternalCommand(
 export function echo(args: string[]): void {
     if (args.length === 0) return;
 
-    rl.write(`${args.join(" ")}` + `\n`);
+    rl.write(`\n${args.join(" ")}` + `\n\n`);
 }
 
 export function type(args: string[]): boolean {
@@ -64,7 +76,7 @@ export function type(args: string[]): boolean {
         const filePath = path.join(directory, args[0]);
 
         if (fs.existsSync(filePath)) {
-            rl.write(`${args[0]} is ${filePath} \n`);
+            rl.write(`\n${args[0]} is ${filePath} \n\n`);
             return true;
         }
     }
