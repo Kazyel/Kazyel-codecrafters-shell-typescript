@@ -2,7 +2,7 @@ import { createInterface } from "readline";
 import processCommand, {
     commandsList,
     echo,
-    externalCommand,
+    runExternalCommand,
     type,
 } from "./commands";
 
@@ -11,22 +11,11 @@ export const rl = createInterface({
     output: process.stdout,
 });
 
-function commandInput() {
-    rl.question("$ ", (userCommand) => {
+async function commandInput() {
+    rl.question("$ ", async (userCommand) => {
         const [command, ...args] = processCommand(userCommand);
 
         if (command === "") {
-            commandInput();
-            return;
-        }
-
-        if (!commandsList.includes(command)) {
-            const externalCommandExists = externalCommand(command, [...args]);
-
-            if (externalCommandExists === false) {
-                rl.write(`${command}: command not found\n`);
-            }
-
             commandInput();
             return;
         }
@@ -55,7 +44,15 @@ function commandInput() {
                 process.exit(0);
 
             default:
-                rl.write(`${command}: command not found\n`);
+                const externalCommandExists = await runExternalCommand(
+                    command,
+                    [...args]
+                );
+
+                if (!externalCommandExists) {
+                    rl.write(`${command}: command not found\n`);
+                }
+
                 commandInput();
                 return;
         }

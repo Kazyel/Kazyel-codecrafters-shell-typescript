@@ -6,6 +6,8 @@ import path from "path";
 
 export const commandsList = ["echo", "type", "exit"];
 
+const execCallback = promisify(exec);
+
 function processCommand(userInput: string): [string, ...string[]] {
     if (userInput.length === 0) return ["", ...[""]];
 
@@ -13,7 +15,7 @@ function processCommand(userInput: string): [string, ...string[]] {
     return [command, ...args];
 }
 
-export async function externalCommand(
+export async function runExternalCommand(
     command: string,
     args: string[]
 ): Promise<boolean> {
@@ -24,13 +26,16 @@ export async function externalCommand(
     for (const directory of existingPaths) {
         const filePath = path.join(directory, command);
 
-        if (fs.existsSync(filePath) && fs.statSync(filePath).isFile()) {
-            const execCb = promisify(exec);
-            const { stdout, stderr } = await execCb(
+        if (fs.existsSync(filePath)) {
+            const { stdout, stderr } = await execCallback(
                 command + " " + args.join(" ")
             );
 
             rl.write(`${stdout}`);
+
+            if (stderr) {
+                rl.write(`${stderr}`);
+            }
 
             foundExec = true;
             break;
@@ -42,6 +47,7 @@ export async function externalCommand(
 
 export function echo(args: string[]): void {
     if (args.length === 0) return;
+
     rl.write(`${args.join(" ")}` + `\n`);
 }
 
