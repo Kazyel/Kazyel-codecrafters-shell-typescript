@@ -31,10 +31,10 @@ export async function runExternalCommand(
                 command + " " + args.join(" ")
             );
 
-            rl.write(`${stdout}`);
+            rl.write(`\n${stdout}`);
 
             if (stderr) {
-                rl.write(`${stderr}`);
+                rl.write(`\n${stderr}`);
             }
 
             foundExec = true;
