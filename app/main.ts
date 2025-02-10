@@ -10,7 +10,7 @@ export const rl = createInterface({
 async function commandInput() {
     rl.question("$ ", async (userCommand) => {
         const [command, ...args] = processCommand(userCommand);
-        const { echo, type, exit, pwd } = commandsList;
+        const { echo, type, exit, pwd, cd } = commandsList;
 
         if (!command) {
             commandInput();
@@ -39,6 +39,11 @@ async function commandInput() {
 
             case "pwd":
                 pwd.run();
+                commandInput();
+                return;
+
+            case "cd":
+                cd.run([...args]);
                 commandInput();
                 return;
 

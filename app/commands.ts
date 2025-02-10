@@ -55,6 +55,18 @@ export const commandsList: CommandList = {
             rl.write(`${process.cwd()}\n`);
         },
     },
+    cd: {
+        description: "Changes the current working directory",
+        run: (args): void => {
+            if (!args) return;
+
+            try {
+                process.chdir(args[0]);
+            } catch (error) {
+                rl.write(`cd: ${args[0]}: No such file or directory\n`);
+            }
+        },
+    },
     exit: {
         description: "Exits the shell",
         run: () => process.exit(0),
