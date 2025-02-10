@@ -27,7 +27,10 @@ export const commandsList: CommandList = {
     type: {
         description: "Prints the type of a command",
         run: (args): boolean | void => {
-            if (!args) return;
+            if (!args || args.length === 0) {
+                rl.write("type: missing arguments\n");
+                return;
+            }
 
             if (commandsList[args[0]]) {
                 rl.write(`${args[0]} is a shell builtin\n`);
@@ -58,9 +61,22 @@ export const commandsList: CommandList = {
     cd: {
         description: "Changes the current working directory",
         run: (args): void => {
-            if (!args) return;
+            if (!args || args.length === 0) {
+                rl.write("cd: missing arguments\n");
+                return;
+            }
 
             try {
+                if (args[0] === "~") {
+                    if (!process.env.HOME) {
+                        rl.write(`cd: HOME environment variable not set\n`);
+                        return;
+                    }
+
+                    process.chdir(process.env.HOME);
+                    return;
+                }
+
                 process.chdir(args[0]);
             } catch (error) {
                 rl.write(`cd: ${args[0]}: No such file or directory\n`);
