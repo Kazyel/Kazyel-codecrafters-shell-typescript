@@ -1,12 +1,13 @@
-import { spawn, exec } from "child_process";
-import { promisify } from "node:util";
 import { rl } from "./main";
 import fs from "fs";
 import path from "path";
 
-export const commandsList = ["echo", "type", "exit"];
-
-const execCallback = promisify(exec);
+type CommandList = {
+    [key: string]: {
+        description: string;
+        run: (args?: string[]) => boolean | void;
+    };
+};
 
 function processCommand(userInput: string): [string, ...string[]] {
     if (userInput.length === 0) return ["", ...[""]];
@@ -15,73 +16,49 @@ function processCommand(userInput: string): [string, ...string[]] {
     return [command, ...args];
 }
 
-export async function runExternalCommand(
-    command: string,
-    args: string[]
-): Promise<boolean> {
-    const pathEnv = process.env.PATH;
-    const existingPaths = pathEnv!.split(":");
-    let foundExec = false;
+export const commandsList: CommandList = {
+    echo: {
+        description: "Prints a line of text",
+        run: (args): void => {
+            if (!args) return;
+            rl.write(`${args.join(" ")}` + `\n`);
+        },
+    },
+    type: {
+        description: "Prints the type of a command",
+        run: (args): boolean | void => {
+            if (!args) return;
 
-    for (const directory of existingPaths) {
-        const filePath = path.join(directory, command);
-
-        if (fs.existsSync(filePath)) {
-            if (args.length === 0) {
-                rl.write(`\n${command}: no arguments provided\n\n`);
-                foundExec = true;
-                break;
+            if (commandsList[args[0]]) {
+                rl.write(`${args[0]} is a shell builtin\n`);
+                return true;
             }
 
-            try {
-                const { stdout, stderr } = await execCallback(
-                    command + " " + args.join(" ")
-                );
+            const pathEnv = process.env.PATH;
+            const existingPaths = pathEnv!.split(":");
 
-                rl.write(`\n${stdout}\n`);
+            for (const directory of existingPaths) {
+                const filePath = path.join(directory, args[0]);
 
-                if (stderr) {
-                    rl.write(`\n${stderr}\n`);
+                if (fs.existsSync(filePath)) {
+                    rl.write(`${args[0]} is ${filePath} \n`);
+                    return true;
                 }
-            } catch (error) {
-                rl.write(`\n${error}\n`);
-                foundExec = true;
-                break;
             }
 
-            foundExec = true;
-            break;
-        }
-    }
-
-    return foundExec;
-}
-
-export function echo(args: string[]): void {
-    if (args.length === 0) return;
-
-    rl.write(`\n${args.join(" ")}` + `\n\n`);
-}
-
-export function type(args: string[]): boolean {
-    if (commandsList.includes(args[0])) {
-        rl.write(`${args[0]} is a shell builtin\n`);
-        return true;
-    }
-
-    const pathEnv = process.env.PATH;
-    const existingPaths = pathEnv!.split(":");
-
-    for (const directory of existingPaths) {
-        const filePath = path.join(directory, args[0]);
-
-        if (fs.existsSync(filePath)) {
-            rl.write(`\n${args[0]} is ${filePath} \n\n`);
-            return true;
-        }
-    }
-
-    return false;
-}
+            return false;
+        },
+    },
+    pwd: {
+        description: "Prints the current working directory",
+        run: (): void => {
+            rl.write(`${process.cwd()}\n`);
+        },
+    },
+    exit: {
+        description: "Exits the shell",
+        run: () => process.exit(0),
+    },
+};
 
 export default processCommand;

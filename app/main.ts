@@ -1,10 +1,6 @@
 import { createInterface } from "readline";
-import processCommand, {
-    commandsList,
-    echo,
-    runExternalCommand,
-    type,
-} from "./commands";
+import processCommand, { commandsList } from "./commands";
+import { runExternalCommand } from "./run-external";
 
 export const rl = createInterface({
     input: process.stdin,
@@ -14,15 +10,16 @@ export const rl = createInterface({
 async function commandInput() {
     rl.question("$ ", async (userCommand) => {
         const [command, ...args] = processCommand(userCommand);
+        const { echo, type, exit, pwd } = commandsList;
 
-        if (command === "") {
+        if (!command) {
             commandInput();
             return;
         }
 
         switch (command) {
             case "echo":
-                echo([...args]);
+                echo.run([...args]);
                 commandInput();
                 return;
 
@@ -32,7 +29,7 @@ async function commandInput() {
                     return;
                 }
 
-                const commandExists = type([...args]);
+                const commandExists = type.run([args[0]]);
 
                 if (commandExists === false)
                     rl.write(`${args.join(" ")}: not found\n`);
@@ -40,8 +37,13 @@ async function commandInput() {
                 commandInput();
                 return;
 
+            case "pwd":
+                pwd.run();
+                commandInput();
+                return;
+
             case "exit":
-                process.exit(0);
+                exit.run();
 
             default:
                 const externalCommandExists = await runExternalCommand(
@@ -50,7 +52,7 @@ async function commandInput() {
                 );
 
                 if (!externalCommandExists) {
-                    rl.write(`\n${command}: command not found\n\n`);
+                    rl.write(`${command}: command not found\n`);
                 }
 
                 commandInput();
